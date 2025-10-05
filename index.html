@@ -59,15 +59,25 @@ html, body {
     }
 
     .card {
-      max-width: 880px;
-      width: min(92vw, 880px);
-      background: #ffffffd9;
-      backdrop-filter: blur(6px);
-      border: 1px solid #e6e8eb;
-      border-radius: 20px;
-      padding: clamp(20px, 4vmin, 40px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-    }
+  max-width: 880px;
+  width: min(92vw, 880px);
+  /* 半透明の塗り（必要に応じて 0.45〜0.75 で調整） */
+  background: rgba(255, 255, 255, 0.45);
+
+  /* ガラス感を弱めたいなら blur を下げる or 完全に消す */
+  backdrop-filter: none;        /* もっとフラットに → none */
+  -webkit-backdrop-filter: none;
+
+  /* 立体感（影）を無くす */
+  box-shadow: none;
+
+  /* エッジも強調しない場合は透明に（薄い境界が欲しければ色を指定） */
+  border: 1px solid transparent;
+
+  border-radius: 20px;
+  padding: clamp(20px, 4vmin, 40px);
+}
+
 
     h1 { font-size: clamp(22px, 3.5vmin, 32px); margin: 0 0 8px; }
     p { line-height: 1.8; margin: 0.5em 0; }
@@ -77,6 +87,47 @@ html, body {
     @media (prefers-reduced-motion: reduce) {
       .card { transition: none; }
     }
+
+/* ---- テキストカード配置 ---- */
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* ← 上寄せ */
+  padding-top: 12vh;       /* ← 上から少し下げる */
+  text-align: center;
+}
+
+.text-block {
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 18px;
+  padding: 2.5em 3em;
+  max-width: 680px;
+  line-height: 1.9;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.05);
+  color: #333;
+  font-size: 1.05rem;
+  backdrop-filter: blur(8px);
+}
+
+.text-block p {
+  margin: 0 0 1.4em;
+}
+
+/* カード内テキストの色を変更 */
+.content .card {
+  color: rgb(51 51 51);    /* ≒ 0.2, 0.2, 0.2 */
+  /* 対応ブラウザならパーセント表記でもOK：
+     color: rgb(20% 20% 20%); */
+}
+
+/* リンクの色も合わせて変える場合（任意） */
+.content .card a { color: #2f3a44; }
+
+/* 段落内の行間：1.8（既存）を前提に、段落間を「もう1行」広げる */
+.content .card p { margin: 0 0 0.5em; }   /* まず下余白だけに統一 */
+.content .card p + p { margin-top: 1.8em; } /* 2つ目以降の段落の頭に1行ぶん追加 */
+
   </style>
 </head>
 <body>
@@ -96,15 +147,19 @@ html, body {
   ></canvas>
 
   <!-- 前景のダミーコンテンツ（実装時は置き換え） -->
-<!--
 <main class="content">
-  <section class="card" role="region" aria-label="静穏の雨粒背景デモ">
-    <h1>静穏の雨粒背景（線と点の抽象アニメーション）</h1>
-    <p class="muted">背景は <strong>窓に落ちる雨のリズム</strong> を、線と点だけでミニマルに表現しています。色・密度・スピードはCSS変数やdata属性で調整できます。</p>
-    <p class="muted">アクセシビリティ配慮として <code>prefers-reduced-motion</code> に従い、ユーザーが「動きを減らす」を有効にしている場合はアニメーションを停止します。</p>
+  <section class="card">
+    <p>有給休暇を取ったある日、わたしは車を走らせていた。<br>
+    雨が降るなか、立ち寄ったケンタッキーフライドチキンで、<br>
+    チキンとポテトを買い、車に戻ってラジオをかけて食べた。</p>
+
+    <p>誰にも気を遣わず、何の義務もなく、<br>
+    ただ雨とラジオの音とチキンの香りに包まれた時間。<br>
+    誰かと話したわけでも、特別なイベントがあったわけでもない。<br>
+    それでもわたしは驚くほど満たされた気持ちになった。</p>
   </section>
 </main>
--->
+
 
   <script>
     (function() {
