@@ -101,6 +101,10 @@ p  { line-height: 1.8; margin: 0.5em 0; }
 @media (prefers-reduced-motion: reduce) {
   .card { transition: none; }
 }
+
+.entrance-link { z-index: 9999; }
+.torii-icon { display: block; }
+
   </style>
 </head>
 
@@ -136,10 +140,12 @@ p  { line-height: 1.8; margin: 0.5em 0; }
 
   <!-- 下中央の鳥居アイコン＝リンク（画像のみ・文字なし） -->
   <div class="entrance-link">
-    <a href="main.html" aria-label="メインページへ">
-      <img src="torii.png" alt="メインページへ" class="torii-icon">
-    </a>
-  </div>
+  <a href="main.html" aria-label="メインページへ">
+    <img src="https://takeda-reha.github.io/solitude-ripple/torii.png?v=1"
+         alt="メインページへ" class="torii-icon">
+  </a>
+</div>
+
 
   <script>
     (function() {
