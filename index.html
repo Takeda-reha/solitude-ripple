@@ -3,258 +3,306 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ひとり時間の共有空間</title>
+  <title>静穏の雨粒背景（抽象｜線と点）</title>
   <style>
-    :root {
-      /* ── テーマ色（静穏：薄いグレー系・控えめ） ─────────────── */
-      --bg0: #f4f6f8;  /* 上部：ほぼ白に近い薄グレー */
-      --bg1: #e8ecef;  /* 中間：少し濃い */
-      --bg2: #c5ccd2;  /* 下部：さらに濃い */
-      --water-tint: #bfc7cf22; /* 水面の淡い色味（透明） */
+:root {
+  /* 背景（body 側の var(--bg-gradient) は表示されません。参考/バックアップ用として残してOK） */
+  --bg-gradient: linear-gradient(
+    180deg,
+    #f4f6f8 0%,   /* 0%〜70% ほぼ白に近い薄いグレー */
+    #f4f6f8 70%,
+    #e8ecef 80%,  /* 70%〜80% 少しだけ濃いグレー */
+    #c5ccd2 90%,  /* 80%〜90% 中間グレー寄り */
+    #808080 100%  /* 90%〜100% 最終目標の #808080 */
+  );
 
-      /* リップル色（雨の色）。初期は落ち着いたグレー */
-      --ripple-stroke: #5d6b7a; 
-      --ripple-highlight: #5d6b7a22; /* 内側の淡い光彩（任意） */
+  /* ★ 雨＝最初のグレー（線・点） */
+  --drop:   #5d6b7a;
+  --ripple: #5d6b7a22;
 
-      /* リップルの残像フェード量（0.12〜0.28推奨）。数値↑で尾が短くなる */
-      --trail-opacity: 0.18;
+  --opacity: 0.18;  /* 残像フェード */
+  /* ↓ いまはキャンバス側で段階グラデーションを描くので未使用。残してOK */
+  --fade-rgb: 0,0,0;
 
-      /* ぼかし（視覚のやわらかさ）。0〜2px 程度 */
-      --blur: 0.0;
+  --density: 0.75;
+  --speed: 2.0;
+  --line-ratio: 0.55;
+  --blur: 0.0;
+}
+
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg-gradient);
+  color: #222;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+               "Hiragino Kaku Gothic ProN", Meiryo, "Noto Sans JP", sans-serif;
+}
+
+    /* 背景キャンバスは全面固定（セクションが増えてもOK） */
+    .rain-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;   /* ← -1 から 0 に変更 */
+  filter: blur(var(--blur));
+  }
+
+
+    /* デモ用の前景（サイトの実コンテンツ想定） */
+    .content {
+      position: relative;
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 8vmin 4vmin;
     }
 
-    html, body { height: 100%; margin: 0; }
-
-    /* 背景：上から下へ穏やかなグレーのグラデーション（池を俯瞰する雰囲気に） */
-    body {
-      background: linear-gradient(180deg, var(--bg0) 0%, var(--bg0) 70%, var(--bg1) 80%, var(--bg2) 100%);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Hiragino Kaku Gothic ProN", Meiryo, "Noto Sans JP", sans-serif;
-      color: #222;
+    .card {
+      max-width: 880px;
+      width: min(92vw, 880px);
+      background: #ffffffd9;
+      backdrop-filter: blur(6px);
+      border: 1px solid #e6e8eb;
+      border-radius: 20px;
+      padding: clamp(20px, 4vmin, 40px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
     }
 
-    /* 水面を描くキャンバス（全面固定） */
-    .pond {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      filter: blur(var(--blur));
-    }
+    h1 { font-size: clamp(22px, 3.5vmin, 32px); margin: 0 0 8px; }
+    p { line-height: 1.8; margin: 0.5em 0; }
+    .muted { color: #5b6470; }
 
-    /* デモ用の前景（実装時は置き換え／削除OK） */
-    .content { position: relative; min-height: 100%; display: grid; place-items: center; padding: 6vmin 4vmin; }
-    .card { max-width: 860px; width: min(92vw, 860px); background: #ffffffd9; border: 1px solid #e6e8eb; border-radius: 20px; padding: clamp(18px, 4vmin, 36px); box-shadow: 0 20px 40px rgba(0,0,0,0.06); backdrop-filter: blur(6px); }
-    h1 { margin: 0 0 6px; font-size: clamp(22px, 3.4vmin, 32px); }
-    p { margin: .5em 0; line-height: 1.8; color: #5b6470; }
-
+    /* 動きの少ない設定を希望するユーザーを尊重 */
     @media (prefers-reduced-motion: reduce) {
       .card { transition: none; }
     }
   </style>
 </head>
 <body>
-  <!-- 水平面リップル用キャンバス。data-* でふるまい調整可能 -->
-<canvas
-  id="pond"
-  class="pond"
-  aria-hidden="true"
-  data-drop-rate="1.0"          <!-- スケジュールされたタイミングでは必ず落とす -->
-  data-min-interval="700"       <!-- 次の雨までの最短間隔(ms)を広げる -->
-  data-max-interval="2400"      <!-- 最長間隔(ms)を広げて“間”にゆらぎを出す -->
-  data-ripple-speed="0.55"      <!-- 波紋の広がりを遅く（0.45〜0.7の範囲でお好み） -->
-  data-ripple-lifespan="3600"   <!-- 波紋の寿命を延ばして“ゆっくり感”を強調 -->
-  data-ripple-width="1.1"
-  data-ripple-max="80"
-  data-multi-waves="true"
-  data-splash-dot="true"
-  data-parallax="0.02"
-></canvas>
+  <!-- 背景キャンバス：data-* で簡易カスタマイズ可能 -->
+  <canvas
+    id="rainCanvas"
+    class="rain-layer"
+    aria-hidden="true"
+    data-density="0.8"      
+    data-speed="1.0"        
+    data-line-ratio="0.55"  
+    data-max-drops="240"    
+    data-dot-size="1.2"     
+    data-line-length="16"   
+    data-line-thickness="1" 
+    data-ripple="true"      
+  ></canvas>
 
-  <!-- 前景デモ。必要なければ削除OK -->
-  <main class="content">
-    <section class="card" role="region" aria-label="ひとり時間の共有空間">
-      <h1>ひとり時間の共有空間</h1>
-      <p>とっておきのおこだわり、あります。</p>
-    </section>
-  </main>
+  <!-- 前景のダミーコンテンツ（実装時は置き換え） -->
+<!--
+<main class="content">
+  <section class="card" role="region" aria-label="静穏の雨粒背景デモ">
+    <h1>静穏の雨粒背景（線と点の抽象アニメーション）</h1>
+    <p class="muted">背景は <strong>窓に落ちる雨のリズム</strong> を、線と点だけでミニマルに表現しています。色・密度・スピードはCSS変数やdata属性で調整できます。</p>
+    <p class="muted">アクセシビリティ配慮として <code>prefers-reduced-motion</code> に従い、ユーザーが「動きを減らす」を有効にしている場合はアニメーションを停止します。</p>
+  </section>
+</main>
+-->
 
   <script>
-    (function(){
-      const canvas = document.getElementById('pond');
+    (function() {
+      const canvas = document.getElementById('rainCanvas');
       const ctx = canvas.getContext('2d');
+
+      // DPR（高解像度ディスプレイ）対応
       const DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+
+      // 動きを減らす設定の尊重
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // 設定（data-* で上書き）
+      // データ属性による上書き可能パラメータ
       const cfg = {
-        dropRate: parseFloat(canvas.dataset.dropRate || 0.9),        // 雨の出現しやすさ（0.0〜1.0）
-        minInterval: parseInt(canvas.dataset.minInterval || 280, 10), // 連続ドロップの最短間隔(ms)
-        maxInterval: parseInt(canvas.dataset.maxInterval || 900, 10), // 連続ドロップの最長間隔(ms)
-        rippleSpeed: parseFloat(canvas.dataset.rippleSpeed || 1.0),   // 波紋の拡大速度係数
-        rippleWidth: parseFloat(canvas.dataset.rippleWidth || 1.1),   // 波紋の線幅（px 基準）
-        rippleLifespan: parseInt(canvas.dataset.rippleLifespan || 2400, 10), // 波紋が消えるまでのms
-        rippleMax: parseInt(canvas.dataset.rippleMax || 80, 10),      // 同時存在する最大波紋数
-        multiWaves: (canvas.dataset.multiWaves || 'true') === 'true', // 複数の同心円を描くか
-        splashDot: (canvas.dataset.splashDot || 'true') === 'true',   // 着水点の点を描くか
-        parallax: parseFloat(canvas.dataset.parallax || 0.02),        // わずかな視差（カーソルに反応）
+        density: parseFloat(canvas.dataset.density || getCSS('--density', 0.75)),
+        speed: parseFloat(canvas.dataset.speed || getCSS('--speed', 1.0)),
+        lineRatio: parseFloat(canvas.dataset.lineRatio || getCSS('--line-ratio', 0.55)),
+        maxDrops: parseInt(canvas.dataset.maxDrops || 220, 10),
+        dotSize: parseFloat(canvas.dataset.dotSize || 1.2),
+        lineLength: parseFloat(canvas.dataset.lineLength || 16),
+        lineThickness: parseFloat(canvas.dataset.lineThickness || 1),
+        ripple: (canvas.dataset.ripple || 'true') === 'true',
       };
 
-      // サイズ・座標
-      let W, H, ripples = [], lastDropAt = 0, targetNext = 0, mouse = {x:0.5, y:0.5};
-      function resize(){
-        W = canvas.width  = Math.floor(innerWidth  * DPR);
+      // CSS変数から値を取得（フォールバック付き）
+      function getCSS(varName, fallback) {
+        const v = getComputedStyle(document.documentElement).getPropertyValue(varName);
+        const n = parseFloat(v.trim());
+        return Number.isFinite(n) ? n : fallback;
+      }
+
+      // サイズ設定
+      let W, H, drops = [], ripples = [];
+      function resize() {
+        W = canvas.width = Math.floor(innerWidth * DPR);
         H = canvas.height = Math.floor(innerHeight * DPR);
         canvas.style.width = innerWidth + 'px';
         canvas.style.height = innerHeight + 'px';
+        // 画面サイズに応じて必要数を調整
+        const base = Math.floor((W * H) / (800 * 600)); // 面積スケーリング基準
+        const targetCount = Math.min(cfg.maxDrops, Math.floor(140 * cfg.density * Math.max(1, base)));
+        resetPool(targetCount);
       }
 
-      // 波紋オブジェクト
-      function spawnRipple(x, y){
-        const now = performance.now();
-        const life = cfg.rippleLifespan * (0.85 + Math.random()*0.3); // 少しばらつき
-const speed = (0.08 + Math.random()*0.08) * cfg.rippleSpeed; // 半径増加( px/ms )
-        const stroke = getComputedStyle(document.documentElement).getPropertyValue('--ripple-stroke').trim() || '#5d6b7a';
-        const highlight = getComputedStyle(document.documentElement).getPropertyValue('--ripple-highlight').trim() || '#5d6b7a22';
-        ripples.push({ x, y, born: now, life, speed, stroke, highlight });
-        if (ripples.length > cfg.rippleMax) ripples.shift();
-      }
+      // 雨粒オブジェクト生成
+      function newDrop() {
+       const isLine = Math.random() < cfg.lineRatio;
 
-      // ランダムな雨を落とす
-      function maybeRain(now){
-        if (now < targetNext) return;
-        if (Math.random() <= cfg.dropRate){
-          // 視差でわずかに中心寄りにオフセット（上から覗く立体感の演出）
-          const px = (Math.random()*0.8 + 0.1) * W + (mouse.x - 0.5) * cfg.parallax * W;
-          const py = (Math.random()*0.8 + 0.1) * H + (mouse.y - 0.5) * cfg.parallax * H;
-          spawnRipple(px, py);
+      // ランダムを維持しつつ速めにバイアス
+       const base = isLine ? 230 : 170;            // px/sec の基準値（従来より速め）
+       const u = Math.pow(Math.random(), 0.6);     // 0〜1（高めに偏らせる）
+       const speed = base * (0.8 + u * 1.4) * cfg.speed; // ≒0.8〜2.2倍の幅
+       const vy = speed / 60;                      // 1フレーム当たり
+       const ay = (isLine ? 18 : 12) / 60 * cfg.speed;    // 疑似重力（加速度）
+
+       const len = isLine ? Math.max(12, speed * 0.06) : 0; // 速いほど長い筋に
+
+       return {
+         x: Math.random() * W,
+         y: - (len || cfg.dotSize * 2) - Math.random() * 80, // 画面上から生まれる
+         vy,
+         ay,
+         len,
+         thick: cfg.lineThickness * (0.7 + Math.random() * 0.6),
+         type: isLine ? 'line' : 'dot',
+         alpha: 0.45 + Math.random() * 0.25,
+       };
+     }
+
+
+      function resetPool(target) {
+        const current = drops.length;
+        if (current < target) {
+          for (let i = current; i < target; i++) drops.push(newDrop());
+        } else if (current > target) {
+          drops.length = target;
         }
-        targetNext = now + (cfg.minInterval + Math.random()*(cfg.maxInterval - cfg.minInterval));
       }
 
-      // トレイル（残像）
-      function fade(){
-        const t = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--trail-opacity') || '0.18');
-        // 上から下へ、ごく薄い水色グラデーションのベールをかける
-        const g = ctx.createLinearGradient(0, 0, 0, H);
-        g.addColorStop(0.00, `rgba(244,246,248,${t})`); // #f4f6f8
-        g.addColorStop(0.70, `rgba(244,246,248,${t})`);
-        g.addColorStop(0.80, `rgba(232,236,239,${t})`); // #e8ecef
-        g.addColorStop(0.90, `rgba(197,204,210,${t})`); // #c5ccd2
-        g.addColorStop(1.00, `rgba(128,128,128,${t})`); // #808080
-        ctx.fillStyle = g;
-        ctx.fillRect(0,0,W,H);
+      function addRipple(x, y) {
+        if (!cfg.ripple) return;
+        ripples.push({ x, y, r: 0, alpha: 0.18 });
+        if (ripples.length > 32) ripples.shift(); // 上限
       }
 
-      // 波紋描画
-      function drawRipples(now){
-        const lwBase = cfg.rippleWidth * DPR;
-        for (let i = ripples.length - 1; i >= 0; i--) {
-          const r = ripples[i];
-          const age = now - r.born;
-          const k = age / r.life; // 0→1
-          if (k >= 1){ ripples.splice(i,1); continue; }
+function step() {
+  // 背景フェード（残像を少し残す）を「上70%ほぼ白 → 下端 #808080」の段階グラデに
+  const opacity = getCSS('--opacity', 0.22);
 
-          const radius = Math.max(0.5, age * r.speed * DPR);
-          const alpha = (1 - k) * 0.6; // 徐々に薄く
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0.00, `rgba(244,246,248,${opacity})`); // #f4f6f8 ほぼ白
+  g.addColorStop(0.70, `rgba(244,246,248,${opacity})`); // 70% まで維持
+  g.addColorStop(0.80, `rgba(232,236,239,${opacity})`); // #e8ecef
+  g.addColorStop(0.90, `rgba(197,204,210,${opacity})`); // #c5ccd2
+  g.addColorStop(1.00, `rgba(128,128,128,${opacity})`); // #808080
 
-          // 外側の主リップル
-          ctx.beginPath();
-          ctx.lineWidth = lwBase * (1 - k*0.5);
-          ctx.strokeStyle = withAlpha(r.stroke, alpha);
-          ctx.arc(r.x, r.y, radius, 0, Math.PI*2);
-          ctx.stroke();
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
 
-          // 内側の薄い光彩（任意）
-          if (k < 0.85) {
+  // 雨（線・点）の色＝CSS変数 --drop を反映（= #5d6b7a）
+  const dropColor = getComputedStyle(document.documentElement)
+                      .getPropertyValue('--drop').trim() || '#5d6b7a';
+  ctx.strokeStyle = dropColor;
+  ctx.fillStyle = dropColor;
+
+
+        // 雨粒の描画
+        for (let i = 0; i < drops.length; i++) {
+          const d = drops[i];
+
+        // ループ内（雨粒の描画まわり）で:
+          d.vy += d.ay || 0;          // 疑似重力で少しずつ加速
+          d.y += d.vy * DPR; // DPRに合わせた移動
+
+          ctx.globalAlpha = d.alpha;
+          if (d.type === 'line') {
+            ctx.lineWidth = d.thick;
             ctx.beginPath();
-            ctx.lineWidth = lwBase * 0.6 * (1 - k);
-            ctx.strokeStyle = withAlpha(r.highlight, alpha * 0.7);
-            ctx.arc(r.x, r.y, Math.max(0.5, radius*0.65), 0, Math.PI*2);
+            ctx.moveTo(d.x, d.y - d.len);
+            ctx.lineTo(d.x, d.y);
             ctx.stroke();
-          }
-
-          // 着水点の微小な点（任意）
-          if (cfg.splashDot && k < 0.15) {
+          } else {
             ctx.beginPath();
-            ctx.fillStyle = withAlpha(r.stroke, Math.min(0.55, alpha+0.15));
-            ctx.arc(r.x, r.y, 1.2*DPR, 0, Math.PI*2);
+            ctx.arc(d.x, d.y, cfg.dotSize, 0, Math.PI * 2);
             ctx.fill();
           }
+
+          // 画面下に到達したら上部に戻す＋リップル
+          if (d.y - (d.len || 0) > H) {
+            if (cfg.ripple) addRipple(d.x, H - 4 * DPR);
+            drops[i] = newDrop();     // 速度や長さもリセットして再生成
+            drops[i].x = Math.random() * W;
+          }
         }
+
+        // リップル描画（薄く広がって消える）
+        if (cfg.ripple && ripples.length) {
+          for (let i = ripples.length - 1; i >= 0; i--) {
+            const r = ripples[i];
+            r.r += 0.8 * DPR;
+            r.alpha *= 0.985;
+            if (r.alpha < 0.008) { ripples.splice(i, 1); continue; }
+            ctx.beginPath();
+            ctx.globalAlpha = r.alpha;
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--ripple').trim() || '#5d6b7a22';
+            ctx.lineWidth = 1 * DPR;
+            ctx.arc(r.x, r.y, r.r, 0, Math.PI);
+            ctx.stroke();
+          }
+        }
+
+        ctx.globalAlpha = 1;
       }
 
-      function withAlpha(color, a){
-        // #rrggbb or rgba() → rgba(r,g,b,a)
-        if (color.startsWith('#')){
-          const hex = color.replace('#','');
-          const bigint = parseInt(hex.length===3 ? hex.split('').map(c=>c+c).join('') : hex, 16);
-          const r = (bigint >> 16) & 255;
-          const g = (bigint >> 8) & 255;
-          const b = bigint & 255;
-          return `rgba(${r},${g},${b},${a})`;
-        }
-        if (color.startsWith('rgba')) return color.replace(/rgba\(([^)]+)\)/, (m,vals)=>`rgba(${vals.split(',').slice(0,3).join(',')},${a})`);
-        if (color.startsWith('rgb')) return color.replace(/rgb\(([^)]+)\)/, (m,vals)=>`rgba(${vals},${a})`);
-        return color;
-      }
-
-      // ループ
-      let rafId=null;
-      function loop(now){
-        fade();
-        drawRipples(now);
-        maybeRain(now);
+      let rafId = null;
+      function loop() {
+        step();
         rafId = requestAnimationFrame(loop);
       }
 
-      // 入出力
-      function onVisibility(){
-        if (document.hidden){ if (rafId) cancelAnimationFrame(rafId); rafId=null; }
-        else if (!reduceMotion){ rafId = requestAnimationFrame(loop); }
-      }
-      function onPointer(e){
-        const rect = canvas.getBoundingClientRect();
-        mouse.x = ( (e.clientX - rect.left) / rect.width );
-        mouse.y = ( (e.clientY - rect.top) / rect.height );
-        // クリックで任意に波紋を追加（デモ用。不要ならコメントアウト）
-        if (e.type === 'pointerdown') {
-          spawnRipple((mouse.x)*W, (mouse.y)*H);
+      // タブ非表示時は停止して省電力
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = null;
+        } else if (!reduceMotion) {
+          rafId = requestAnimationFrame(loop);
         }
-      }
+      });
 
       // 初期化
       resize();
-      window.addEventListener('resize', resize, {passive:true});
-      document.addEventListener('visibilitychange', onVisibility);
-      canvas.addEventListener('pointermove', onPointer, {passive:true});
-      canvas.addEventListener('pointerdown', onPointer);
+      window.addEventListener('resize', resize, { passive: true });
 
-      if (!reduceMotion) rafId = requestAnimationFrame(loop);
-      else fade(); // 1フレームだけ塗って終了
+      if (!reduceMotion) {
+        rafId = requestAnimationFrame(loop);
+      } else {
+        // 動きを減らすユーザー向けに1フレームだけ描いて終了
+        step();
+      }
 
-      // 外部制御 API（任意）
-      window.Pond = {
-        setRate(v){ cfg.dropRate = clamp(parseFloat(v),0,1); },
-        setSpeed(v){ cfg.rippleSpeed = clamp(parseFloat(v),0.2,2.0); },
-        setWidth(v){ cfg.rippleWidth = clamp(parseFloat(v),0.2,4.0); },
-        setLifespan(ms){ cfg.rippleLifespan = clamp(parseInt(ms||0,10),400,6000); },
-        spawn(x=0.5,y=0.5){ spawnRipple(x*W,y*H); },
+      // 外部から簡単に調整できるようにAPIを公開（任意）
+      window.RainBackdrop = {
+        setDensity(v) { cfg.density = clamp(parseFloat(v), 0.1, 2.0); resize(); },
+        setSpeed(v) { cfg.speed = clamp(parseFloat(v), 0.2, 2.0); },
+        setLineRatio(v) { cfg.lineRatio = clamp(parseFloat(v), 0, 1); },
+        setColors({ bgStart, bgEnd, drop, ripple }) {
+          if (bgStart) document.documentElement.style.setProperty('--bg-start', bgStart);
+          if (bgEnd) document.documentElement.style.setProperty('--bg-end', bgEnd);
+          if (drop) document.documentElement.style.setProperty('--drop', drop);
+          if (ripple) document.documentElement.style.setProperty('--ripple', ripple);
+        },
+        pause() { if (rafId) cancelAnimationFrame(rafId); rafId = null; },
+        play() { if (!rafId && !reduceMotion) rafId = requestAnimationFrame(loop); },
       };
 
-      function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+      function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
     })();
   </script>
-
-  <section id="post-your-solitude">
-  <h2>あなたのひとり時間を投稿する</h2>
-  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc7G7paHmRJT79fj1Ayl0gf3hZrUFJ4Wi6mJEDpo5l9hvN-lQ/viewform?usp=header"
-          width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">
-    読み込んでいます…
-  </iframe>
-</section>
-
 </body>
 </html>
-
-
-
-
