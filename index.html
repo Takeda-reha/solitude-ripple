@@ -128,6 +128,27 @@ html, body {
 .content .card p { margin: 0 0 0.5em; }   /* まず下余白だけに統一 */
 .content .card p + p { margin-top: 1.8em; } /* 2つ目以降の段落の頭に1行ぶん追加 */
 
+/* 画面下中央に鳥居アイコンを固定配置 */
+.entrance-link {
+  position: fixed;
+  bottom: 5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+}
+
+.entrance-link img {
+  opacity: 0.8;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  cursor: pointer;
+}
+
+.entrance-link img:hover {
+  transform: translateY(-4px) scale(1.05);
+  opacity: 1.0;
+}
+
   </style>
 </head>
 <body>
@@ -149,13 +170,22 @@ html, body {
   <!-- 前景のダミーコンテンツ（実装時は置き換え） -->
 <main class="content">
   <section class="card">
-    <p>メインだよ。</p>
+    <p>有給休暇を取ったある日、わたしは車を走らせていた。<br>
+    雨が降るなか、立ち寄ったケンタッキーフライドチキンで、<br>
+    チキンとポテトを買い、車に戻ってラジオをかけて食べた。</p>
 
     <p>誰にも気を遣わず、何の義務もなく、<br>
     ただ雨とラジオの音とチキンの香りに包まれた時間。<br>
     誰かと話したわけでも、特別なイベントがあったわけでもない。<br>
     それでもわたしは驚くほど満たされた気持ちになった。</p>
   </section>
+
+<!-- メインページへのリンクボタン（鳥居アイコン） -->
+<div class="entrance-link">
+  <a href="main.html" aria-label="メインページへ">
+    <img src="assets/torii.png" alt="メインページへ" width="96" height="96">
+  </a>
+</div>
 
 
 </main>
@@ -361,4 +391,3 @@ function step() {
   </script>
 </body>
 </html>
-
