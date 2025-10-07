@@ -55,14 +55,16 @@ h1{font-size:clamp(22px,3.2vmin,32px);margin:0 0 .6em;color:#2b333a}
 
 .link-icons {
   display: flex;
-  justify-content: center;
-  gap: 8vw;           /* アイコン間の距離 */
-  margin-top: 6vh;    /* cardとの余白 */
-  flex-wrap: wrap;    /* 画面が狭いときに折り返す */
+  justify-content: center;   /* 横方向で中央寄せ */
+  align-items: center;       /* 縦方向で中央揃え */
+  gap: 12vw;                 /* 左右の距離（大きすぎたら8vwくらいでもOK） */
+  margin-top: 6vh;           /* カードとの間隔 */
+  position: relative;        /* 位置を相対指定 */
+  width: 100%;               /* 横幅いっぱいで中央基準 */
 }
 
 .link-icon {
-  width: 160px;       /* サイズ調整可 */
+  width: 140px;              /* アイコンサイズ（調整可能） */
   height: auto;
   opacity: 0.9;
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -71,7 +73,7 @@ h1{font-size:clamp(22px,3.2vmin,32px);margin:0 0 .6em;color:#2b333a}
 }
 
 .link-icon:hover {
-  transform: scale(1.05);
+  transform: translateY(-4px) scale(1.05);
   opacity: 1.0;
 }
 
@@ -196,4 +198,5 @@ h1{font-size:clamp(22px,3.2vmin,32px);margin:0 0 .6em;color:#2b333a}
   </script>
 </body>
 </html>
+
 
