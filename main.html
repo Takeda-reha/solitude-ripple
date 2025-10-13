@@ -82,6 +82,21 @@ h1{font-size:clamp(22px,3.2vmin,32px);margin:0 0 .6em;color:#2b333a}
   opacity: 1.0;
 }
 
+.link-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.link-label {
+  margin-top: 0.4rem;
+  font-size: 1rem;
+  color: #2b333a;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
     
   </style>
 </head>
@@ -101,18 +116,27 @@ h1{font-size:clamp(22px,3.2vmin,32px);margin:0 0 .6em;color:#2b333a}
     
 <!-- カードの下に2つの画像ボタン -->
 <div class="link-icons">
+
   <!-- Share.png → Googleフォームへ直接 -->
-  <a href="https://docs.google.com/forms/d/e/1FAIpQLSc7G7paHmRJT79fj1Ayl0gf3hZrUFJ4Wi6mJEDpo5l9hvN-lQ/viewform?usp=dialog"
-     target="_blank" rel="noopener noreferrer"
-     aria-label="ひとり時間を投稿する">
-    <img src="Share.png" alt="ひとり時間を投稿する" class="link-icon">
-  </a>
+  <div class="link-item">
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc7G7paHmRJT79fj1Ayl0gf3hZrUFJ4Wi6mJEDpo5l9hvN-lQ/viewform?usp=dialog"
+       target="_blank" rel="noopener noreferrer"
+       aria-label="ひとり時間を投稿する">
+      <img src="Share.png" alt="ひとり時間を投稿する" class="link-icon">
+    </a>
+    <p class="link-label">シェアする</p>
+  </div>
 
   <!-- Keep.png → 独立したkeep.htmlへ -->
-  <a href="keep.html" aria-label="ひとり時間を大切にする">
-    <img src="Keep.png" alt="ひとり時間を大切にする" class="link-icon">
-  </a>
+  <div class="link-item">
+    <a href="keep.html" aria-label="ひとり時間を大切にする">
+      <img src="Keep.png" alt="ひとり時間を大切にする" class="link-icon">
+    </a>
+    <p class="link-label">しまっておく</p>
+  </div>
+
 </div>
+
 
     
   </main>
@@ -197,6 +221,7 @@ h1{font-size:clamp(22px,3.2vmin,32px);margin:0 0 .6em;color:#2b333a}
   </script>
 </body>
 </html>
+
 
 
 
