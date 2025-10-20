@@ -20,10 +20,19 @@ html,body{
 
 /* 前景テキスト */
 .content{
-  position:relative; min-height:100%;
-  display:flex; justify-content:center; align-items:flex-start;
-  padding:12vh 4vmin 8vmin; text-align:center; z-index:1;
+  position:relative;
+  min-height:100%;
+  display:flex;
+  /* ここを追加/変更 */
+  flex-direction: column;   /* ← 子要素を縦並びにする */
+  align-items: center;      /* ← 中央寄せ */
+  justify-content: flex-start;
+  padding:12vh 4vmin 8vmin;
+  text-align:center;
+  z-index:1;
+  gap: 24px;                /* ← カードと入口の間隔（任意） */
 }
+
 .card{
   max-width:880px; width:min(92vw,880px);
   background:rgba(255,255,255,.45);
@@ -37,21 +46,21 @@ p{line-height:1.8; margin:.5em 0;}
 .content .card p{margin:0 0 .5em;}
 .content .card p + p{margin-top:1.8em;}
 
-/* ====== 入口のビジュアル（窓＋テーブル） ====== */
+/* 入口ブロック：カードの下に通常配置 */
 .entrance-area{
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%);
-  bottom:5vh;            /* 全体の高さ（下から） */
-  z-index:50;            /* キャンバスより前面 */
-  display:flex;
-  flex-direction:column; /* 窓 → テーブルの順で縦積み */
-  align-items:center;
-  pointer-events:none;   /* 中の要素だけクリック可にするため */
+  position: static;           /* ← fixed をやめる */
+  margin-top: 28px;           /* カードとの間隔（好みで調整） */
+  width: 100%;
+  display: flex;
+  flex-direction: column;     /* 窓 → テーブル の縦並び */
+  align-items: center;        /* 中央寄せ */
+  pointer-events: none;       /* 中のリンクだけクリック可にするため */
 }
 
 /* クリックできるのは窓のみ */
-.entrance-area a{ pointer-events:auto; text-decoration:none; }
+.entrance-area a{ pointer-events: auto; }
+
+/* 窓とテーブルのスタイルはそのままでOK（必要ならサイズだけ調整） */
 
 /* 窓（リンクアイコン） */
 .window-icon{
@@ -64,7 +73,6 @@ p{line-height:1.8; margin:.5em 0;}
   user-select:none; -webkit-user-drag:none;
 }
 /* ほんの少し上に持ち上げる（“少し上に” の演出） */
-.window-icon{ transform:translateY(-8px); }
 .window-icon:hover{ transform:translateY(-10px) scale(1.04); opacity:1; }
 
 /* テーブル（装飾のみ・非クリック） */
@@ -93,24 +101,31 @@ p{line-height:1.8; margin:.5em 0;}
   <!-- 前景テキスト -->
   <main class="content">
     <section class="card">
-      <p>有給休暇を取ったある日、わたしは車を走らせていた。<br>
-      雨が降るなか、立ち寄ったケンタッキーフライドチキンで、<br>
-      チキンとポテトを買い、車に戻ってラジオをかけて食べた。</p>
+      <p>有給休暇を取ったある日、<br>
+      わたしは車を走らせていた。<br>
+      雨が降るなか立ち寄った<br>
+      ケンタッキーフライドチキンで、<br>
+      チキンとポテトを買い、<br>
+      車に戻ってラジオをかけて食べた。</p>
 
-      <p>誰にも気を遣わず、何の義務もなく、<br>
-      ただ雨とラジオの音とチキンの香りに包まれた時間。<br>
-      誰かと話したわけでも、特別なイベントがあったわけでもない。<br>
-      それでもわたしは驚くほど満たされた気持ちになった。</p>
+      <p>誰にも気を遣わず、<br>
+      何の義務もなく、<br>
+      ただ雨とラジオの音と<br>
+      チキンの香りに包まれた時間。<br>
+      誰かと話したわけでも、<br>
+      特別なイベントがあったわけでもない。<br>
+      それでもわたしは<br>
+      驚くほど満たされた気持ちになった。</p>
     </section>
-  </main>
-
-  <!-- 窓（リンク）＋テーブルの演出 -->
+      <!-- 窓（リンク）＋テーブルの演出 -->
   <div class="entrance-area" aria-label="ひとりの部屋の入口">
     <a href="main.html" aria-label="ひとり時間のシェア空間へ">
       <img src="window.png" alt="窓（クリックで入室）" class="window-icon">
     </a>
     <img src="on_the_table.png" alt="テーブルとコーヒー" class="table-img">
   </div>
+    
+  </main>
 
   <script>
   (function(){
@@ -223,6 +238,7 @@ p{line-height:1.8; margin:.5em 0;}
   </script>
 </body>
 </html>
+
 
 
 
