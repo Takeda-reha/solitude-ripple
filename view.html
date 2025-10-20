@@ -52,6 +52,7 @@ html,body{
   font-size: 1rem;
   line-height: 1.7;
   margin-bottom: 16px;
+  white-space: pre-wrap;
 }
 
 /* 更新ボタン */
@@ -75,7 +76,7 @@ html,body{
 
   <!-- 表示カード -->
   <div id="randomSolo">
-    <div class="label"> 今日のひとり時間</div>
+    <div class="label">☔ 今日のひとり時間</div>
     <div id="soloTitle">読み込み中...</div>
     <div id="soloOne"></div>
     <button id="refreshButton">更新</button>
@@ -102,8 +103,14 @@ html,body{
       const title = pick['タイトル'] || pick['title'] || '';
       const one   = pick['ひとこと'] || pick['一言'] || pick['comment'] || '';
 
+      // 句点または空白（半角・全角・改行）で改行
+      const formattedOne = one
+        .replace(/。/g, '。<br>')        // 「。」の後で改行
+        .replace(/[\s　]+/g, '<br>')    // スペース・全角スペースを改行に
+        .replace(/<br><br>/g, '<br>');  // 連続改行を1つに整形
+
       document.getElementById('soloTitle').textContent = title || '（タイトル未設定）';
-      document.getElementById('soloOne').textContent   = one   || '（ひとこと未設定）';
+      document.getElementById('soloOne').innerHTML   = formattedOne || '（ひとこと未設定）';
     } catch (err) {
       console.error(err);
       document.getElementById('soloTitle').textContent = 'データを読み込めませんでした。';
