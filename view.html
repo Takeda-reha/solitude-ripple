@@ -7,93 +7,86 @@
   <style>
 :root{
   --bg-gradient: linear-gradient(180deg,#f4f6f8 0%,#f4f6f8 70%,#e8ecef 80%,#c5ccd2 90%,#808080 100%);
-  --drop:#5d6b7a; --ripple:#5d6b7a22; --opacity:.18;
 }
 html,body{
-  height:100%; margin:0;
+  height:100%;
+  margin:0;
   background:var(--bg-gradient);
   color:#222;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",sans-serif;
-}
-.rain-layer{position:fixed;inset:0;z-index:0;filter:blur(0);}
-
-/* コンテンツ */
-.main{
-  position:relative;
-  z-index:1;
-  min-height:100%;
-  padding:12vh 4vmin 10vmin;
   display:flex;
-  flex-direction:column;
+  justify-content:center;
   align-items:center;
-  text-align:center;
 }
-.card{
-  max-width:800px;
-  width:min(94vw,800px);
-  background:rgba(255,255,255,.45);
-  border-radius:20px;
-  padding:clamp(20px,4vmin,40px);
-  border:1px solid transparent;
-}
-h1{
-  font-size:clamp(22px,3.2vmin,32px);
-  margin:0 0 .6em;
-  color:#2b333a;
-}
-p{line-height:1.8;margin:.5em 0;}
+
+/* カード */
 #randomSolo {
-  margin-top: 24px;
-  padding: 16px 20px;
-  max-width: 600px;
   background: rgba(255,255,255,0.65);
-  border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.05);
-  text-align: left;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  padding: 28px 32px;
+  max-width: 600px;
+  width: min(90vw, 600px);
+  text-align: center;
+  transition: box-shadow .3s ease, transform .3s ease;
 }
-#randomSolo .label {
+#randomSolo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+}
+
+/* 見出し・テキスト */
+.label {
   font-size: .9rem;
   color: #5b6470;
   margin-bottom: 6px;
 }
 #soloTitle {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: #2b333a;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 #soloOne {
   color: #374151;
-  font-size: .95rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+/* 更新ボタン */
+#refreshButton {
+  background: rgba(255,255,255,0.4);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 9999px;
+  padding: 10px 20px;
+  font-weight: 600;
+  color: #2b333a;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+#refreshButton:hover {
+  background: rgba(255,255,255,0.7);
+  transform: translateY(-2px);
 }
   </style>
 </head>
 <body>
-  <!-- 背景 -->
-  <canvas id="rainCanvas" class="rain-layer" aria-hidden="true"></canvas>
 
-  <!-- コンテンツ -->
-  <main class="main">
-    <section class="card">
-      <h1>みんなのひとり時間</h1>
-      <p>これまでに集まった「ひとり時間」から、ランダムにひとつご紹介します。</p>
-
-      <!-- ランダム表示エリア -->
-      <div id="randomSolo">
-        <div class="label">☔ 今日のひとり時間</div>
-        <div id="soloTitle"></div>
-        <div id="soloOne"></div>
-      </div>
-    </section>
-  </main>
+  <!-- 表示カード -->
+  <div id="randomSolo">
+    <div class="label"> 今日のひとり時間</div>
+    <div id="soloTitle">読み込み中...</div>
+    <div id="soloOne"></div>
+    <button id="refreshButton">更新</button>
+  </div>
 
   <!-- SheetJS (XLSX) CDN -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
-  (async function(){
-    const XLSX_URL = 'solitude_time.xlsx'; // 同じフォルダにある前提
+  async function loadRandomSolo(){
+    const XLSX_URL = 'solitude_time.xlsx';
     try {
       const res = await fetch(XLSX_URL, { cache: 'no-store' });
       if (!res.ok) throw new Error('XLSX fetch failed: ' + res.status);
@@ -113,20 +106,16 @@ p{line-height:1.8;margin:.5em 0;}
       document.getElementById('soloOne').textContent   = one   || '（ひとこと未設定）';
     } catch (err) {
       console.error(err);
-      document.getElementById('randomSolo').style.display = 'none';
+      document.getElementById('soloTitle').textContent = 'データを読み込めませんでした。';
+      document.getElementById('soloOne').textContent   = '';
     }
-  })();
-  </script>
+  }
 
-  <script>
-  // 背景（簡略版の雨アニメーション）
-  (function(){
-    const c=document.getElementById('rainCanvas'),x=c.getContext('2d');
-    const DPR=Math.max(1,Math.min(devicePixelRatio||1,2));
-    let W,H; function resize(){W=c.width=innerWidth*DPR;H=c.height=innerHeight*DPR;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';}
-    function step(){const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#f4f6f8');g.addColorStop(1,'#c5ccd2');x.fillStyle=g;x.fillRect(0,0,W,H);}
-    resize();addEventListener('resize',resize);step();
-  })();
+  // 初期表示
+  loadRandomSolo();
+
+  // 更新ボタンのクリックで再読み込み
+  document.getElementById('refreshButton').addEventListener('click', loadRandomSolo);
   </script>
 </body>
 </html>
